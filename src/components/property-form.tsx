@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { SimpleSelect } from '@/components/simple-select'
 
 export interface OwnerOption {
   id: string
@@ -44,8 +45,19 @@ const EMPTY: PropertyFormValues = {
   ownerId: '',
 }
 
-const selectClass =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+const TYPE_OPTIONS = [
+  { value: 'apartment', label: 'Appartement' },
+  { value: 'house', label: 'Maison' },
+  { value: 'commercial', label: 'Local commercial' },
+  { value: 'land', label: 'Terrain' },
+  { value: 'other', label: 'Autre' },
+]
+const STATUS_OPTIONS = [
+  { value: 'available', label: 'Disponible' },
+  { value: 'rented', label: 'Loué' },
+  { value: 'maintenance', label: 'Entretien' },
+  { value: 'sold', label: 'Vendu' },
+]
 
 export function PropertyForm({
   mode,
@@ -79,8 +91,9 @@ export function PropertyForm({
       | 'other'
       | undefined,
     surface: form.surface !== '' ? Number(form.surface) : undefined,
-    rooms: form.rooms !== '' ? Number(form.rooms) : undefined,
-    floor: form.floor !== '' ? Number(form.floor) : undefined,
+    // Terrain : ni pièces ni étage
+    rooms: form.type !== 'land' && form.rooms !== '' ? Number(form.rooms) : undefined,
+    floor: form.type !== 'land' && form.floor !== '' ? Number(form.floor) : undefined,
     status: form.status as 'available' | 'rented' | 'maintenance' | 'sold',
     is_public: form.is_public,
     ownerId: form.ownerId || undefined,
@@ -124,13 +137,7 @@ export function PropertyForm({
 
         <div className="space-y-2">
           <Label htmlFor="type">Type</Label>
-          <select id="type" className={selectClass} value={form.type} onChange={(e) => set('type', e.target.value)}>
-            <option value="apartment">Appartement</option>
-            <option value="house">Maison</option>
-            <option value="commercial">Local commercial</option>
-            <option value="land">Terrain</option>
-            <option value="other">Autre</option>
-          </select>
+          <SimpleSelect id="type" value={form.type} onValueChange={(v) => set('type', v)} options={TYPE_OPTIONS} />
         </div>
 
         <div className="space-y-2 sm:col-span-2">
@@ -155,53 +162,50 @@ export function PropertyForm({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="rooms">Pièces</Label>
-          <Input
-            id="rooms"
-            type="number"
-            min="0"
-            value={form.rooms}
-            onChange={(e) => set('rooms', e.target.value)}
-          />
-        </div>
+        {/* Pièces & étage : non pertinents pour un terrain */}
+        {form.type !== 'land' && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="rooms">Pièces</Label>
+              <Input
+                id="rooms"
+                type="number"
+                min="0"
+                value={form.rooms}
+                onChange={(e) => set('rooms', e.target.value)}
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="floor">Étage</Label>
-          <Input
-            id="floor"
-            type="number"
-            value={form.floor}
-            onChange={(e) => set('floor', e.target.value)}
-            placeholder="0 = RDC"
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="floor">Étage</Label>
+              <Input
+                id="floor"
+                type="number"
+                value={form.floor}
+                onChange={(e) => set('floor', e.target.value)}
+                placeholder="0 = RDC"
+              />
+            </div>
+          </>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="status">Statut</Label>
-          <select id="status" className={selectClass} value={form.status} onChange={(e) => set('status', e.target.value)}>
-            <option value="available">Disponible</option>
-            <option value="rented">Loué</option>
-            <option value="maintenance">Entretien</option>
-            <option value="sold">Vendu</option>
-          </select>
+          <SimpleSelect id="status" value={form.status} onValueChange={(v) => set('status', v)} options={STATUS_OPTIONS} />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="ownerId">Propriétaire</Label>
-          <select
+          <SimpleSelect
             id="ownerId"
-            className={selectClass}
             value={form.ownerId}
-            onChange={(e) => set('ownerId', e.target.value)}
-          >
-            <option value="">— Aucun —</option>
-            {owners.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.full_name ?? o.id.slice(0, 8)}
-              </option>
-            ))}
-          </select>
+            onValueChange={(v) => set('ownerId', v)}
+            placeholder="— Aucun —"
+            options={[
+              { value: '', label: '— Aucun —' },
+              ...owners.map((o) => ({ value: o.id, label: o.full_name ?? o.id.slice(0, 8) })),
+            ]}
+          />
         </div>
 
         <div className="space-y-2 sm:col-span-2">

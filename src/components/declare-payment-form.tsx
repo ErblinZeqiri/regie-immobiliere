@@ -6,6 +6,7 @@ import { declarePayment } from '@/actions/payments'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { SimpleSelect } from '@/components/simple-select'
 
 const METHODS = [
   { value: 'bank_transfer', label: 'Virement bancaire' },
@@ -90,18 +91,12 @@ export function DeclarePaymentForm({
 
         <div className="space-y-2">
           <Label htmlFor="method">Moyen de paiement</Label>
-          <select
+          <SimpleSelect
             id="method"
             value={method}
-            onChange={(e) => setMethod(e.target.value)}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            {METHODS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
+            onValueChange={setMethod}
+            options={[...METHODS]}
+          />
         </div>
 
         <div className="space-y-2">
