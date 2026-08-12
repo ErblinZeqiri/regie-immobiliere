@@ -143,7 +143,7 @@ export default async function ProprietaireDashboardPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Tableau de bord</h1>
         <p className="text-sm text-muted-foreground">
           {properties.length} bien{properties.length > 1 ? 's' : ''} · {rented} loué
           {rented > 1 ? 's' : ''} · {vacant} vacant{vacant > 1 ? 's' : ''}
@@ -152,21 +152,21 @@ export default async function ProprietaireDashboardPage() {
 
       {/* Résumé financier */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card>
+        <Card className="kpi-card">
           <CardHeader className="pb-2">
             <CardDescription>Encaissé ce mois</CardDescription>
-            <CardTitle className="text-3xl text-green-600">{eur(collectedThisMonth)}</CardTitle>
+            <CardTitle className="amount text-3xl font-bold text-green-600">{eur(collectedThisMonth)}</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <p className="text-xs text-muted-foreground">Paiements validés du mois en cours.</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="kpi-card">
           <CardHeader className="pb-2">
             <CardDescription>Total en retard</CardDescription>
             <CardTitle
-              className={`text-3xl ${overdueTotal > 0.005 ? 'text-destructive' : 'text-green-600'}`}
+              className={`amount text-3xl font-bold ${overdueTotal > 0.005 ? 'text-destructive' : 'text-green-600'}`}
             >
               {eur(overdueTotal)}
             </CardTitle>
@@ -178,10 +178,10 @@ export default async function ProprietaireDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="kpi-card">
           <CardHeader className="pb-2">
             <CardDescription>Paiements en attente</CardDescription>
-            <CardTitle className={`text-3xl ${pendingCount > 0 ? 'text-amber-600' : ''}`}>
+            <CardTitle className={`amount text-3xl font-bold ${pendingCount > 0 ? 'text-amber-600' : ''}`}>
               {pendingCount}
             </CardTitle>
           </CardHeader>

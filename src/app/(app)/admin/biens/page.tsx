@@ -37,7 +37,7 @@ export default async function AdminBiensPage() {
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Biens</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Biens</h1>
           <p className="text-sm text-muted-foreground">{rows.length} bien{rows.length > 1 ? 's' : ''}</p>
         </div>
         <Button className="gap-2" render={<Link href="/admin/biens/nouveau" />}>

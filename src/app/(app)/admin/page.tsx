@@ -131,7 +131,7 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Tableau de bord</h1>
         <p className="text-sm text-muted-foreground">Vue d’ensemble de la régie.</p>
       </header>
 
@@ -225,7 +225,7 @@ export default async function AdminDashboardPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold">{eur(c.remaining)}</span>
+                      <span className="amount text-base">{eur(c.remaining)}</span>
                       <Badge variant="destructive">En retard</Badge>
                     </div>
                   </div>
@@ -258,10 +258,10 @@ function StatCard({
         ? 'text-amber-600'
         : 'text-foreground'
   return (
-    <Card>
+    <Card className="kpi-card">
       <CardHeader className="pb-2">
         <CardDescription>{label}</CardDescription>
-        <CardTitle className={`text-3xl ${valueColor}`}>{value}</CardTitle>
+        <CardTitle className={`amount text-3xl font-bold ${valueColor}`}>{value}</CardTitle>
       </CardHeader>
       {hint && (
         <CardContent className="pt-0">

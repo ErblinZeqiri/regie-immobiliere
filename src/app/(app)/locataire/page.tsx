@@ -117,7 +117,7 @@ export default async function LocataireDashboardPage() {
   if (!data || !data.lease) {
     return (
       <div className="max-w-3xl space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight">Mon espace</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Mon espace</h1>
         <div className="rounded-lg border border-dashed py-16 text-center text-sm text-muted-foreground">
           Aucun bail actif associé à votre compte. Contactez la régie.
         </div>
@@ -132,7 +132,7 @@ export default async function LocataireDashboardPage() {
   return (
     <div className="max-w-3xl space-y-8">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight">Mon espace</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Mon espace</h1>
         <p className="text-sm text-muted-foreground">Votre bail, votre solde et vos paiements.</p>
       </header>
 
@@ -161,7 +161,7 @@ export default async function LocataireDashboardPage() {
               <dt className="text-muted-foreground">Charges</dt>
               <dd className="text-right font-medium">{eur(lease.charges_amount)}</dd>
               <dt className="text-muted-foreground">Total mensuel</dt>
-              <dd className="text-right font-semibold">{eur(monthly)}</dd>
+              <dd className="amount text-right">{eur(monthly)}</dd>
               <dt className="text-muted-foreground">Dépôt de garantie</dt>
               <dd className="text-right">{eur(lease.deposit_amount)}</dd>
               <dt className="text-muted-foreground">Depuis le</dt>
@@ -171,14 +171,14 @@ export default async function LocataireDashboardPage() {
         </Card>
 
         {/* Mon solde */}
-        <Card>
+        <Card className="kpi-card">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Wallet className="h-4 w-4 text-muted-foreground" aria-hidden />
               <CardDescription>Mon solde</CardDescription>
             </div>
             <CardTitle
-              className={`text-3xl ${totalDue > 0.005 ? 'text-destructive' : 'text-green-600'}`}
+              className={`amount text-3xl font-bold ${totalDue > 0.005 ? 'text-destructive' : 'text-green-600'}`}
             >
               {eur(totalDue)}
             </CardTitle>
@@ -231,7 +231,7 @@ export default async function LocataireDashboardPage() {
               {payments.map((p) => (
                 <div key={p.id} className="flex items-center justify-between p-4">
                   <div className="space-y-0.5">
-                    <p className="font-medium">{eur(p.amount)}</p>
+                    <p className="amount text-base">{eur(p.amount)}</p>
                     <p className="text-xs text-muted-foreground">
                       {p.payment_date}
                       {p.method ? ` · ${p.method}` : ''}

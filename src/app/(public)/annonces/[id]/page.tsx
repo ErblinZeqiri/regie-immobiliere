@@ -122,7 +122,7 @@ export default async function AnnonceDetailPage({
             </div>
 
             <div>
-              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{property.title}</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{property.title}</h1>
               {(property.address || property.city) && (
                 <p className="mt-1 flex items-center gap-1 text-muted-foreground">
                   <MapPin className="h-4 w-4 shrink-0" aria-hidden />
