@@ -101,7 +101,7 @@ export function AppShell({
   return (
     <div className="min-h-screen bg-muted/20">
       {/* Sidebar desktop */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r bg-background md:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
         <Link
           href={homeHref}
           className="flex h-16 items-center gap-2 border-b px-4 font-semibold"
@@ -141,7 +141,7 @@ export function AppShell({
             onClick={() => setOpen(false)}
             aria-hidden
           />
-          <aside className="absolute inset-y-0 left-0 flex w-64 flex-col bg-background shadow-xl">
+          <aside className="absolute inset-y-0 left-0 flex w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-xl">
             <div className="flex h-16 items-center justify-between border-b px-4">
               <span className="font-semibold">{title}</span>
               <button

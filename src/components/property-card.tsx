@@ -32,20 +32,20 @@ export function PropertyCard({ property }: { property: PropertyCardData }) {
   const typeLabel = property.type ? (TYPE_LABELS[property.type] ?? property.type) : null
 
   return (
-    <Card className="group overflow-hidden pt-0 transition-shadow hover:shadow-lg">
+    <Card className="group overflow-hidden pt-0 ring-foreground/[0.06] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:ring-primary/25">
       {/* Image cliquable */}
       <Link href={href} className="block">
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
+        <div className="relative aspect-[4/3] w-full overflow-hidden">
           {property.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={property.imageUrl}
               alt={property.title}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-              <Building2 className="h-10 w-10" aria-hidden />
+            <div className="photo-placeholder h-full w-full">
+              <Building2 className="h-12 w-12 opacity-80" aria-hidden strokeWidth={1.25} />
             </div>
           )}
 

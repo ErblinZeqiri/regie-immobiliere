@@ -9,8 +9,8 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
 
   if (images.length === 0) {
     return (
-      <div className="flex aspect-[16/10] w-full items-center justify-center rounded-lg bg-muted text-muted-foreground">
-        <Building2 className="h-12 w-12" aria-hidden />
+      <div className="photo-placeholder aspect-[16/10] w-full rounded-xl ring-1 ring-foreground/[0.06]">
+        <Building2 className="h-16 w-16 opacity-80" aria-hidden strokeWidth={1.1} />
       </div>
     )
   }
