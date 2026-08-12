@@ -18,9 +18,9 @@ const USERS = {
 const HIDE_DEV = 'nextjs-portal{display:none!important}'
 
 async function shot(page, path, name) {
-  await page.goto(BASE + path, { waitUntil: 'load', timeout: 30000 })
+  await page.goto(BASE + path, { waitUntil: 'domcontentloaded', timeout: 60000 })
   await page.addStyleTag({ content: HIDE_DEV }).catch(() => {})
-  await page.waitForTimeout(1600) // laisse charger données + images signées
+  await page.waitForTimeout(2000) // laisse charger données + images signées + fonts
   await page.screenshot({ path: `${OUT}/${name}.png`, fullPage: true })
   console.log('✓', name)
 }
