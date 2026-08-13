@@ -3,7 +3,7 @@
 import { z } from 'zod'
 import { zuuid } from '@/lib/zutil'
 import { revalidatePath } from 'next/cache'
-import { requireUser } from '@/lib/auth/guards'
+import { requireAdmin, requireUser } from '@/lib/auth/guards'
 import { createUserClient } from '@/lib/supabase/server'
 import { toActionError } from '@/lib/server-helpers'
 import type { ActionResult, Issue, IssuePhoto } from '@/lib/types'
@@ -115,6 +115,32 @@ export async function addIssuePhotos(
 
     revalidatePath('/signalements') // adapte le chemin
     return { ok: true, data: (photos ?? []) as IssuePhoto[] }
+  } catch (e) {
+    return toActionError(e)
+  }
+}
+
+// ===========================================================================
+// setIssueStatus — ADMIN change le statut d'un signalement
+// ===========================================================================
+const SetIssueStatusInput = z.object({
+  id: zuuid(),
+  status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
+})
+
+export async function setIssueStatus(
+  input: z.input<typeof SetIssueStatusInput>,
+): Promise<ActionResult<null>> {
+  try {
+    const { id, status } = SetIssueStatusInput.parse(input)
+    await requireAdmin()
+    const supabase = await createUserClient() // RLS issues_admin_all autorise l'admin
+
+    const { error } = await supabase.from('issues').update({ status }).eq('id', id)
+    if (error) throw error
+
+    revalidatePath('/admin/signalements')
+    return { ok: true, data: null }
   } catch (e) {
     return toActionError(e)
   }
