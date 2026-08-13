@@ -13,6 +13,7 @@ import {
   Banknote,
   Home,
   Receipt,
+  Inbox,
   Menu,
   X,
   LogOut,
@@ -33,6 +34,7 @@ const ICONS = {
   message: MessageSquare,
   home: Home,
   receipt: Receipt,
+  inbox: Inbox,
 } as const
 
 export type NavItem = {

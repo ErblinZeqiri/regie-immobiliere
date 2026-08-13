@@ -1,7 +1,9 @@
 'use server'
 
 import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
 import { zuuid } from '@/lib/zutil'
+import { requireAdmin } from '@/lib/auth/guards'
 import { createUserClient } from '@/lib/supabase/server'
 import { toActionError } from '@/lib/server-helpers'
 import type { ActionResult } from '@/lib/types'
@@ -40,6 +42,34 @@ export async function submitApplication(
     })
     if (error) throw error
 
+    return { ok: true, data: null }
+  } catch (e) {
+    return toActionError(e)
+  }
+}
+
+// ===========================================================================
+// setApplicationStatus — ADMIN change le statut d'une candidature
+// ===========================================================================
+const SetStatusInput = z.object({
+  id: zuuid(),
+  status: z.enum(['new', 'contacted', 'archived']),
+})
+
+export async function setApplicationStatus(
+  input: z.input<typeof SetStatusInput>,
+): Promise<ActionResult<null>> {
+  try {
+    const { id, status } = SetStatusInput.parse(input)
+    await requireAdmin()
+    // Client utilisateur : la RLS `applications_admin_all` réserve déjà l'écriture
+    // à l'admin — pas besoin du service_role.
+    const supabase = await createUserClient()
+
+    const { error } = await supabase.from('applications').update({ status }).eq('id', id)
+    if (error) throw error
+
+    revalidatePath('/admin/candidatures')
     return { ok: true, data: null }
   } catch (e) {
     return toActionError(e)
