@@ -14,13 +14,19 @@ import { Input } from '@/components/ui/input'
 export function GenerateChargesButton({
   leaseId,
   label = 'Générer les échéances',
+  defaultMonth,
+  hideMonthInput = false,
 }: {
   leaseId?: string
   label?: string
+  defaultMonth?: string
+  /** Masque le sélecteur de mois : génère alors le mois `defaultMonth`. */
+  hideMonthInput?: boolean
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7))
+  const [monthState, setMonthState] = useState(defaultMonth ?? new Date().toISOString().slice(0, 7))
+  const month = hideMonthInput ? (defaultMonth ?? monthState) : monthState
   const [msg, setMsg] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -39,13 +45,15 @@ export function GenerateChargesButton({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Input
-        type="month"
-        value={month}
-        onChange={(e) => setMonth(e.target.value)}
-        className="w-40"
-        aria-label="Mois à générer"
-      />
+      {!hideMonthInput && (
+        <Input
+          type="month"
+          value={monthState}
+          onChange={(e) => setMonthState(e.target.value)}
+          className="w-40"
+          aria-label="Mois à générer"
+        />
+      )}
       <Button type="button" variant="outline" onClick={run} disabled={pending} className="gap-2">
         <CalendarPlus className="h-4 w-4" />
         {pending ? 'Génération…' : label}
