@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Screenshots générés
 /screenshots/
+
+# Mémo local (identifiants de test) — ne pas committer
+/LOGINS.md
