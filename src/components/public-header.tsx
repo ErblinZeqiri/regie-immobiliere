@@ -1,17 +1,64 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Building2, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/client'
 
 const NAV_LINKS = [{ href: '/annonces', label: 'Annonces' }]
 
 /** Nom de la régie — remplace par le tien. */
 const BRAND = 'Régie Ferizaj'
 
+const ROLE_HOME: Record<string, string> = {
+  admin: '/admin',
+  owner: '/proprietaire',
+  tenant: '/locataire',
+}
+
+interface CurrentUser {
+  name: string
+  home: string
+}
+
 export function PublicHeader() {
   const [open, setOpen] = useState(false)
+  const [me, setMe] = useState<CurrentUser | null>(null)
+
+  // État de connexion détecté côté client → les pages publiques restent cachées.
+  useEffect(() => {
+    const supabase = createClient()
+    let active = true
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!active || !user) return
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name, role')
+        .eq('id', user.id)
+        .single()
+      if (!active) return
+      const role = data?.role ?? 'tenant'
+      setMe({
+        name: data?.full_name ?? user.email ?? 'Mon espace',
+        home: ROLE_HOME[role] ?? '/',
+      })
+    })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const initial = (me?.name ?? '?').trim().charAt(0).toUpperCase() || '?'
+
+  const Avatar = ({ withName = false }: { withName?: boolean }) => (
+    <Link href={me!.home} onClick={() => setOpen(false)} className="flex items-center gap-2">
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+        {initial}
+      </span>
+      {withName && <span className="text-sm font-medium">{me!.name}</span>}
+    </Link>
+  )
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -35,9 +82,13 @@ export function PublicHeader() {
               {link.label}
             </Link>
           ))}
-          <Button size="sm" render={<Link href="/login" />}>
-            Connexion
-          </Button>
+          {me ? (
+            <Avatar withName />
+          ) : (
+            <Button size="sm" render={<Link href="/login" />}>
+              Connexion
+            </Button>
+          )}
         </nav>
 
         {/* Bouton menu mobile */}
@@ -66,12 +117,25 @@ export function PublicHeader() {
                 {link.label}
               </Link>
             ))}
-            <Button
-              className="mt-2 w-full"
-              render={<Link href="/login" onClick={() => setOpen(false)} />}
-            >
-              Connexion
-            </Button>
+            {me ? (
+              <Link
+                href={me.home}
+                onClick={() => setOpen(false)}
+                className="mt-2 flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                  {initial}
+                </span>
+                {me.name}
+              </Link>
+            ) : (
+              <Button
+                className="mt-2 w-full"
+                render={<Link href="/login" onClick={() => setOpen(false)} />}
+              >
+                Connexion
+              </Button>
+            )}
           </div>
         </nav>
       )}
