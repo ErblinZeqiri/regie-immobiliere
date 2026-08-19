@@ -125,7 +125,7 @@ export async function addIssuePhotos(
 // ===========================================================================
 const SetIssueStatusInput = z.object({
   id: zuuid(),
-  status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
+  status: z.enum(['open', 'in_progress', 'resolved', 'closed', 'archived']),
 })
 
 export async function setIssueStatus(

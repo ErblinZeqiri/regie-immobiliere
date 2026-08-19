@@ -24,8 +24,10 @@ function StatusBadge({ status }: { status: string }) {
       return <Badge className="border-transparent bg-blue-600 text-white">En cours</Badge>
     case 'resolved':
       return <Badge className="border-transparent bg-green-600 text-white">Résolu</Badge>
-    default:
+    case 'closed':
       return <Badge variant="secondary">Clôturé</Badge>
+    default:
+      return <Badge variant="secondary" className="opacity-80">Archivé</Badge>
   }
 }
 

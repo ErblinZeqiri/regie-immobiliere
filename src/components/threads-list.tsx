@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 interface ThreadRow {
   id: string
   subject: string | null
+  status: string
   created_at: string
   property: { reference: string | null } | null
   messages: { content: string; created_at: string }[]
@@ -16,7 +17,7 @@ export async function ThreadsList({ basePath }: { basePath: string }) {
   const supabase = await createUserClient()
   const { data } = await supabase
     .from('message_threads')
-    .select('id, subject, created_at, property:properties(reference), messages(content, created_at)')
+    .select('id, subject, status, created_at, property:properties(reference), messages(content, created_at)')
     .order('created_at', { ascending: false })
   const rows = (data ?? []) as unknown as ThreadRow[]
 
@@ -46,6 +47,9 @@ export async function ThreadsList({ basePath }: { basePath: string }) {
                 <div className="flex items-center gap-2">
                   <span className="truncate font-medium">{t.subject ?? 'Conversation'}</span>
                   {t.property?.reference && <Badge variant="outline">{t.property.reference}</Badge>}
+                  {t.status !== 'open' && (
+                    <Badge variant="secondary">{t.status === 'archived' ? 'Archivée' : 'Clôturée'}</Badge>
+                  )}
                 </div>
                 <p className="line-clamp-1 text-sm text-muted-foreground">
                   {last?.content ?? 'Aucun message'}

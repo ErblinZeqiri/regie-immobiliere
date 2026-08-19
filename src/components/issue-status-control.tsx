@@ -10,6 +10,7 @@ const STATUS_OPTIONS = [
   { value: 'in_progress', label: 'En cours' },
   { value: 'resolved', label: 'Résolu' },
   { value: 'closed', label: 'Clôturé' },
+  { value: 'archived', label: 'Archivé' },
 ]
 
 export function IssueStatusControl({ id, status }: { id: string; status: string }) {
@@ -20,7 +21,7 @@ export function IssueStatusControl({ id, status }: { id: string; status: string 
     startTransition(async () => {
       const res = await setIssueStatus({
         id,
-        status: next as 'open' | 'in_progress' | 'resolved' | 'closed',
+        status: next as 'open' | 'in_progress' | 'resolved' | 'closed' | 'archived',
       })
       if (res.ok) router.refresh()
     })

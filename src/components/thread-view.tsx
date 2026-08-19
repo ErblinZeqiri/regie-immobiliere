@@ -1,11 +1,18 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Lock } from 'lucide-react'
 import { createUserClient } from '@/lib/supabase/server'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { MessageReplyForm } from '@/components/message-reply-form'
+import { ThreadStatusControl } from '@/components/thread-status-control'
+
+function ThreadStatusBadge({ status }: { status: string }) {
+  if (status === 'closed') return <Badge variant="secondary">Clôturée</Badge>
+  if (status === 'archived') return <Badge variant="secondary" className="opacity-80">Archivée</Badge>
+  return <Badge className="border-transparent bg-green-600 text-white">Ouverte</Badge>
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -17,7 +24,15 @@ interface MessageRow {
   sender: { full_name: string | null } | null
 }
 
-export async function ThreadView({ id, basePath }: { id: string; basePath: string }) {
+export async function ThreadView({
+  id,
+  basePath,
+  canManage = false,
+}: {
+  id: string
+  basePath: string
+  canManage?: boolean
+}) {
   if (!UUID_RE.test(id)) notFound()
   const supabase = await createUserClient()
 
@@ -28,7 +43,7 @@ export async function ThreadView({ id, basePath }: { id: string; basePath: strin
   // RLS : un non-participant reçoit null -> 404
   const { data: thread } = await supabase
     .from('message_threads')
-    .select('id, subject, property:properties(reference)')
+    .select('id, subject, status, property:properties(reference)')
     .eq('id', id)
     .maybeSingle()
   if (!thread) notFound()
@@ -42,6 +57,7 @@ export async function ThreadView({ id, basePath }: { id: string; basePath: strin
   const rows = (messages ?? []) as unknown as MessageRow[]
 
   const property = (thread as { property: { reference: string | null } | null }).property
+  const status = (thread as { status: string }).status
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
@@ -53,11 +69,15 @@ export async function ThreadView({ id, basePath }: { id: string; basePath: strin
         Retour aux messages
       </Link>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-xl font-bold tracking-tight">
-          {(thread as { subject: string | null }).subject ?? 'Conversation'}
-        </h1>
-        {property?.reference && <Badge variant="outline">{property.reference}</Badge>}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-xl font-bold tracking-tight">
+            {(thread as { subject: string | null }).subject ?? 'Conversation'}
+          </h1>
+          {property?.reference && <Badge variant="outline">{property.reference}</Badge>}
+          <ThreadStatusBadge status={status} />
+        </div>
+        {canManage && <ThreadStatusControl threadId={id} status={status} />}
       </div>
 
       <Card>
@@ -97,7 +117,14 @@ export async function ThreadView({ id, basePath }: { id: string; basePath: strin
         </CardContent>
       </Card>
 
-      <MessageReplyForm threadId={id} />
+      {status === 'open' ? (
+        <MessageReplyForm threadId={id} />
+      ) : (
+        <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground">
+          <Lock className="h-4 w-4" aria-hidden />
+          Conversation {status === 'archived' ? 'archivée' : 'clôturée'} — lecture seule.
+        </div>
+      )}
     </div>
   )
 }

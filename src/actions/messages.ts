@@ -3,7 +3,7 @@
 import { z } from 'zod'
 import { zuuid } from '@/lib/zutil'
 import { revalidatePath } from 'next/cache'
-import { requireUser } from '@/lib/auth/guards'
+import { requireAdmin, requireUser } from '@/lib/auth/guards'
 import { createUserClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { toActionError } from '@/lib/server-helpers'
@@ -154,6 +154,35 @@ export async function startThread(
 
     revalidatePath('/messages') // adapte le chemin
     return { ok: true, data: { thread: thread as MessageThread, message: message as Message } }
+  } catch (e) {
+    return toActionError(e)
+  }
+}
+
+// ===========================================================================
+// setThreadStatus — ADMIN clôture / archive / rouvre un fil
+// ===========================================================================
+const SetThreadStatusInput = z.object({
+  threadId: zuuid(),
+  status: z.enum(['open', 'closed', 'archived']),
+})
+
+export async function setThreadStatus(
+  input: z.input<typeof SetThreadStatusInput>,
+): Promise<ActionResult<null>> {
+  try {
+    const { threadId, status } = SetThreadStatusInput.parse(input)
+    await requireAdmin()
+    const supabase = await createUserClient() // RLS threads_admin_all autorise l'admin
+
+    const { error } = await supabase
+      .from('message_threads')
+      .update({ status })
+      .eq('id', threadId)
+    if (error) throw error
+
+    revalidatePath(`/admin/messages/${threadId}`)
+    return { ok: true, data: null }
   } catch (e) {
     return toActionError(e)
   }
