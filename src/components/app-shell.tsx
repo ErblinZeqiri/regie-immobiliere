@@ -14,6 +14,7 @@ import {
   Home,
   Receipt,
   Inbox,
+  Store,
   Menu,
   X,
   LogOut,
@@ -58,7 +59,10 @@ export function AppShell({
   const [open, setOpen] = useState(false)
   const homeHref = nav[0]?.href ?? '/'
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
+  // Le lien racine (tableau de bord) ne s'active qu'en correspondance exacte,
+  // sinon il resterait « actif » sur toutes les sous-pages.
+  const isActive = (href: string) =>
+    pathname === href || (href !== homeHref && pathname.startsWith(`${href}/`))
 
   const NavList = () => (
     <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
@@ -85,12 +89,20 @@ export function AppShell({
   )
 
   const Footer = () => (
-    <div className="border-t p-3">
+    <div className="space-y-2 border-t p-3">
       {userName && (
-        <p className="truncate px-2 pb-2 text-xs text-muted-foreground">
+        <p className="truncate px-2 text-xs text-muted-foreground">
           Connecté : <span className="font-medium text-foreground">{userName}</span>
         </p>
       )}
+      <Button
+        variant="ghost"
+        className="w-full justify-start gap-2"
+        render={<Link href="/annonces" onClick={() => setOpen(false)} />}
+      >
+        <Store className="h-4 w-4" aria-hidden />
+        Voir les annonces
+      </Button>
       <form action={logout}>
         <Button type="submit" variant="outline" className="w-full justify-start gap-2">
           <LogOut className="h-4 w-4" aria-hidden />
