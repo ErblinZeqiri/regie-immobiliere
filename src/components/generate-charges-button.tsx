@@ -58,7 +58,7 @@ export function GenerateChargesButton({
         <CalendarPlus className="h-4 w-4" />
         {pending ? 'Génération…' : label}
       </Button>
-      {msg && <span className="text-sm text-green-600">{msg}</span>}
+      {msg && <span className="text-sm text-success">{msg}</span>}
       {error && <span className="text-sm text-destructive">{error}</span>}
     </div>
   )

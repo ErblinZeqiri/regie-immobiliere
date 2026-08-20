@@ -26,15 +26,15 @@ interface LeaseDetail {
 
 function ChargeStatus({ remaining, amount, cancelled }: { remaining: number; amount: number; cancelled: boolean }) {
   if (cancelled) return <Badge variant="secondary">Annulée</Badge>
-  if (remaining <= 0.005) return <Badge className="border-transparent bg-green-600 text-white">Soldée</Badge>
+  if (remaining <= 0.005) return <Badge className="border-success/25 bg-success/10 text-success">Soldée</Badge>
   if (remaining < amount - 0.005)
     return <Badge variant="outline" className="border-amber-500 text-amber-600">Partielle</Badge>
   return <Badge variant="destructive">Due</Badge>
 }
 
 function PaymentStatus({ status }: { status: string }) {
-  if (status === 'validated') return <Badge className="border-transparent bg-green-600 text-white">Validé</Badge>
-  if (status === 'pending') return <Badge className="border-transparent bg-amber-500 text-white">En attente</Badge>
+  if (status === 'validated') return <Badge className="border-success/25 bg-success/10 text-success">Validé</Badge>
+  if (status === 'pending') return <Badge className="border-amber-500/25 bg-amber-500/10 text-amber-600">En attente</Badge>
   return <Badge variant="destructive">Rejeté</Badge>
 }
 
@@ -97,7 +97,7 @@ export default async function BailDetailPage({ params }: { params: Promise<{ id:
       {/* Infos du bail */}
       <Card>
         <CardHeader className="pb-3">
-          <CardDescription>Bail</CardDescription>
+          <CardDescription className="stat-label">Bail</CardDescription>
           <CardTitle className="flex flex-wrap items-center gap-2 text-lg">
             {lease.property?.reference ?? lease.property?.title ?? 'Bien'}
             <span className="text-muted-foreground">·</span>
@@ -116,7 +116,7 @@ export default async function BailDetailPage({ params }: { params: Promise<{ id:
               <dt className="text-muted-foreground">Statut</dt>
               <dd>
                 {lease.status === 'active' ? (
-                  <Badge className="border-transparent bg-green-600 text-white">Actif</Badge>
+                  <Badge className="border-success/25 bg-success/10 text-success">Actif</Badge>
                 ) : (
                   <Badge variant="secondary">{lease.status === 'ended' ? 'Terminé' : 'Résilié'}</Badge>
                 )}

@@ -120,7 +120,7 @@ async function getOwnerData() {
 function PropertyStatusBadge({ status }: { status: string }) {
   switch (status) {
     case 'rented':
-      return <Badge className="border-transparent bg-green-600 text-white">Loué</Badge>
+      return <Badge className="border-success/25 bg-success/10 text-success">Loué</Badge>
     case 'available':
       return (
         <Badge variant="outline" className="border-amber-500 text-amber-600">
@@ -154,8 +154,8 @@ export default async function ProprietaireDashboardPage() {
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="kpi-card">
           <CardHeader className="pb-2">
-            <CardDescription>Encaissé ce mois</CardDescription>
-            <CardTitle className="amount text-3xl font-bold text-green-600">{eur(collectedThisMonth)}</CardTitle>
+            <CardDescription className="stat-label">Encaissé ce mois</CardDescription>
+            <CardTitle className="amount text-3xl font-bold text-success">{eur(collectedThisMonth)}</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <p className="text-xs text-muted-foreground">Paiements validés du mois en cours.</p>
@@ -164,9 +164,9 @@ export default async function ProprietaireDashboardPage() {
 
         <Card className="kpi-card">
           <CardHeader className="pb-2">
-            <CardDescription>Total en retard</CardDescription>
+            <CardDescription className="stat-label">Total en retard</CardDescription>
             <CardTitle
-              className={`amount text-3xl font-bold ${overdueTotal > 0.005 ? 'text-destructive' : 'text-green-600'}`}
+              className={`amount text-3xl font-bold ${overdueTotal > 0.005 ? 'text-destructive' : 'text-success'}`}
             >
               {eur(overdueTotal)}
             </CardTitle>
@@ -180,7 +180,7 @@ export default async function ProprietaireDashboardPage() {
 
         <Card className="kpi-card">
           <CardHeader className="pb-2">
-            <CardDescription>Paiements en attente</CardDescription>
+            <CardDescription className="stat-label">Paiements en attente</CardDescription>
             <CardTitle className={`amount text-3xl font-bold ${pendingCount > 0 ? 'text-amber-600' : ''}`}>
               {pendingCount}
             </CardTitle>

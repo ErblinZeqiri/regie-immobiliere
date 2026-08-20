@@ -1,7 +1,7 @@
 import { LoginForm } from '@/components/login-form'
 
 export const metadata = {
-  title: 'Connexion | Régie Ferizaj',
+  title: 'Connexion | Pron Gérance',
 }
 
 /**

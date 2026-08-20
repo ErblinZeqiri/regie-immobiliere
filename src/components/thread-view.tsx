@@ -11,7 +11,7 @@ import { ThreadStatusControl } from '@/components/thread-status-control'
 function ThreadStatusBadge({ status }: { status: string }) {
   if (status === 'closed') return <Badge variant="secondary">Clôturée</Badge>
   if (status === 'archived') return <Badge variant="secondary" className="opacity-80">Archivée</Badge>
-  return <Badge className="border-transparent bg-green-600 text-white">Ouverte</Badge>
+  return <Badge className="border-success/25 bg-success/10 text-success">Ouverte</Badge>
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -56,7 +56,7 @@ export async function ThreadView({
     .order('created_at', { ascending: true })
   const rows = (messages ?? []) as unknown as MessageRow[]
 
-  const property = (thread as { property: { reference: string | null } | null }).property
+  const property = (thread as unknown as { property: { reference: string | null } | null }).property
   const status = (thread as { status: string }).status
 
   return (

@@ -1,34 +1,42 @@
 'use client'
 
 import { useState } from 'react'
-import { Building2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SmartImage } from '@/components/smart-image'
 
-export function PropertyGallery({ images, title }: { images: string[]; title: string }) {
+/**
+ * Galerie photo. Si aucune vraie photo n'est chargée, on retombe sur un visuel
+ * de secours (Unsplash) plutôt qu'un placeholder vide — la vitrine reste belle.
+ */
+export function PropertyGallery({
+  images,
+  title,
+  fallback,
+}: {
+  images: string[]
+  title: string
+  fallback?: string
+}) {
   const [active, setActive] = useState(0)
+  const shots = images.length > 0 ? images : fallback ? [fallback] : []
 
-  if (images.length === 0) {
-    return (
-      <div className="photo-placeholder aspect-[16/10] w-full rounded-xl ring-1 ring-foreground/[0.06]">
-        <Building2 className="h-16 w-16 opacity-80" aria-hidden strokeWidth={1.1} />
-      </div>
-    )
+  if (shots.length === 0) {
+    return <div className="photo-placeholder aspect-[16/10] w-full rounded-[10px] border border-border" />
   }
 
   return (
     <div className="space-y-3">
-      <div className="aspect-[16/10] w-full overflow-hidden rounded-lg bg-muted">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={images[active]}
+      <div className="aspect-[16/10] w-full overflow-hidden rounded-[10px] border border-border bg-muted">
+        <SmartImage
+          sources={[shots[active], fallback]}
           alt={`${title} — photo ${active + 1}`}
           className="h-full w-full object-cover"
         />
       </div>
 
-      {images.length > 1 && (
+      {shots.length > 1 && (
         <div className="grid grid-cols-5 gap-2">
-          {images.map((src, i) => (
+          {shots.map((src, i) => (
             <button
               key={i}
               type="button"
@@ -40,8 +48,7 @@ export function PropertyGallery({ images, title }: { images: string[]; title: st
                 i === active ? 'border-primary' : 'border-transparent hover:border-muted-foreground/40',
               )}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" className="h-full w-full object-cover" />
+              <SmartImage sources={[src, fallback]} alt="" className="h-full w-full object-cover" />
             </button>
           ))}
         </div>

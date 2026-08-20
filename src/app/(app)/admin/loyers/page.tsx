@@ -34,7 +34,7 @@ interface PendingRow {
 }
 
 function ChargeStatus({ remaining, amount, overdue }: { remaining: number; amount: number; overdue: boolean }) {
-  if (remaining <= 0.005) return <Badge className="border-transparent bg-green-600 text-white">Soldée</Badge>
+  if (remaining <= 0.005) return <Badge className="border-success/25 bg-success/10 text-success">Soldée</Badge>
   if (overdue) return <Badge variant="destructive">En retard</Badge>
   if (remaining < amount - 0.005)
     return <Badge variant="outline" className="border-amber-500 text-amber-600">Partielle</Badge>
@@ -120,20 +120,20 @@ export default async function AdminLoyersPage({
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="kpi-card">
           <CardHeader className="pb-2">
-            <CardDescription>Attendu</CardDescription>
+            <CardDescription className="stat-label">Attendu</CardDescription>
             <CardTitle className="amount text-3xl font-bold">{eur(attendu)}</CardTitle>
           </CardHeader>
         </Card>
         <Card className="kpi-card">
           <CardHeader className="pb-2">
-            <CardDescription>Encaissé</CardDescription>
-            <CardTitle className="amount text-3xl font-bold text-green-600">{eur(encaisse)}</CardTitle>
+            <CardDescription className="stat-label">Encaissé</CardDescription>
+            <CardTitle className="amount text-3xl font-bold text-success">{eur(encaisse)}</CardTitle>
           </CardHeader>
         </Card>
         <Card className="kpi-card">
           <CardHeader className="pb-2">
-            <CardDescription>Reste dû</CardDescription>
-            <CardTitle className={`amount text-3xl font-bold ${resteDu > 0.005 ? 'text-destructive' : 'text-green-600'}`}>
+            <CardDescription className="stat-label">Reste dû</CardDescription>
+            <CardTitle className={`amount text-3xl font-bold ${resteDu > 0.005 ? 'text-destructive' : 'text-success'}`}>
               {eur(resteDu)}
             </CardTitle>
           </CardHeader>

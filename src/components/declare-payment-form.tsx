@@ -116,7 +116,7 @@ export function DeclarePaymentForm({
         </p>
       )}
       {success && (
-        <p className="text-sm text-green-600" role="status">
+        <p className="text-sm text-success" role="status">
           Paiement déclaré. Il sera validé par la régie.
         </p>
       )}

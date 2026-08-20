@@ -48,7 +48,7 @@ export function ApplicationForm({
   if (done) {
     return (
       <div className="flex flex-col items-center gap-2 py-6 text-center">
-        <CheckCircle2 className="h-10 w-10 text-green-600" aria-hidden />
+        <CheckCircle2 className="h-10 w-10 text-success" aria-hidden />
         <p className="font-medium">Demande envoyée !</p>
         <p className="text-sm text-muted-foreground">
           La régie vous recontactera rapidement.

@@ -18,7 +18,7 @@ interface Row {
 }
 
 const STATUS: Record<string, { label: string; className?: string; variant?: 'outline' | 'secondary' }> = {
-  rented: { label: 'Loué', className: 'border-transparent bg-green-600 text-white' },
+  rented: { label: 'Loué', className: 'border-success/25 bg-success/10 text-success' },
   available: { label: 'Disponible', variant: 'outline', className: 'border-amber-500 text-amber-600' },
   maintenance: { label: 'Entretien', variant: 'secondary' },
   sold: { label: 'Vendu', variant: 'secondary' },
@@ -81,7 +81,7 @@ export default async function AdminBiensPage() {
                       </td>
                       <td className="p-3">
                         {r.is_public ? (
-                          <span className="inline-flex items-center gap-1 text-green-600">
+                          <span className="inline-flex items-center gap-1 text-success">
                             <Eye className="h-4 w-4" /> Public
                           </span>
                         ) : (

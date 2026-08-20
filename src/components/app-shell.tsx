@@ -23,8 +23,8 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { logout } from '@/actions/auth'
 
-// Map nom -> composant : garde les props (NavItem) sérialisables entre
-// Server Component (layouts) et ce Client Component.
+const BRAND = 'Pron Gérance'
+
 const ICONS = {
   dashboard: LayoutDashboard,
   building: Building2,
@@ -59,28 +59,43 @@ export function AppShell({
   const [open, setOpen] = useState(false)
   const homeHref = nav[0]?.href ?? '/'
 
-  // Le lien racine (tableau de bord) ne s'active qu'en correspondance exacte,
-  // sinon il resterait « actif » sur toutes les sous-pages.
   const isActive = (href: string) =>
     pathname === href || (href !== homeHref && pathname.startsWith(`${href}/`))
 
+  const Brand = () => (
+    <Link
+      href={homeHref}
+      onClick={() => setOpen(false)}
+      className="block border-b border-sidebar-border px-5 py-4"
+    >
+      <span className="font-display block text-[1.05rem] leading-none font-semibold text-foreground">
+        {BRAND}
+      </span>
+      <span className="mt-1.5 block text-[10px] font-semibold tracking-[0.18em] text-primary uppercase">
+        {title}
+      </span>
+    </Link>
+  )
+
   const NavList = () => (
-    <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+    <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
       {nav.map((item) => {
         const Icon = ICONS[item.icon]
+        const active = isActive(item.href)
         return (
           <Link
             key={item.href}
             href={item.href}
             onClick={() => setOpen(false)}
             className={cn(
-              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-              isActive(item.href)
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+              'relative flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm transition-colors',
+              active
+                ? 'bg-accent font-medium text-primary'
+                : 'text-muted-foreground hover:bg-black/[0.03] hover:text-foreground',
             )}
           >
-            <Icon className="h-4 w-4 shrink-0" aria-hidden />
+            {active && <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-primary" />}
+            <Icon className={cn('h-4 w-4 shrink-0', active ? 'text-primary' : 'text-muted-foreground')} aria-hidden />
             {item.label}
           </Link>
         )
@@ -89,48 +104,41 @@ export function AppShell({
   )
 
   const Footer = () => (
-    <div className="space-y-2 border-t p-3">
+    <div className="space-y-0.5 border-t border-sidebar-border p-3">
       {userName && (
-        <p className="truncate px-2 text-xs text-muted-foreground">
-          Connecté : <span className="font-medium text-foreground">{userName}</span>
-        </p>
+        <p className="truncate px-3 pb-1 text-[11px] text-muted-foreground">{userName}</p>
       )}
-      <Button
-        variant="ghost"
-        className="w-full justify-start gap-2"
-        render={<Link href="/annonces" onClick={() => setOpen(false)} />}
+      <Link
+        href="/annonces"
+        onClick={() => setOpen(false)}
+        className="flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-black/[0.03] hover:text-foreground"
       >
         <Store className="h-4 w-4" aria-hidden />
         Voir les annonces
-      </Button>
+      </Link>
       <form action={logout}>
-        <Button type="submit" variant="outline" className="w-full justify-start gap-2">
+        <button
+          type="submit"
+          className="flex w-full items-center gap-2.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-black/[0.03] hover:text-foreground"
+        >
           <LogOut className="h-4 w-4" aria-hidden />
           Déconnexion
-        </Button>
+        </button>
       </form>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-muted/20">
+    <div className="min-h-screen bg-background">
       {/* Sidebar desktop */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
-        <Link
-          href={homeHref}
-          className="flex h-16 items-center gap-2 border-b px-4 font-semibold"
-        >
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Building2 className="h-5 w-5" aria-hidden />
-          </span>
-          <span>{title}</span>
-        </Link>
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-sidebar-border bg-sidebar md:flex">
+        <Brand />
         <NavList />
         <Footer />
       </aside>
 
       {/* Barre supérieure mobile */}
-      <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
+      <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background px-4 md:hidden">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -139,7 +147,7 @@ export function AppShell({
         >
           <Menu className="h-5 w-5" />
         </button>
-        <span className="font-semibold">{title}</span>
+        <span className="font-display text-sm font-semibold">{BRAND}</span>
         <form action={logout}>
           <Button type="submit" size="icon" variant="ghost" aria-label="Déconnexion">
             <LogOut className="h-5 w-5" />
@@ -150,19 +158,15 @@ export function AppShell({
       {/* Sidebar mobile (overlay) */}
       {open && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setOpen(false)}
-            aria-hidden
-          />
-          <aside className="absolute inset-y-0 left-0 flex w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-xl">
-            <div className="flex h-16 items-center justify-between border-b px-4">
-              <span className="font-semibold">{title}</span>
+          <div className="absolute inset-0 bg-foreground/25" onClick={() => setOpen(false)} aria-hidden />
+          <aside className="absolute inset-y-0 left-0 flex w-60 flex-col border-r border-sidebar-border bg-sidebar shadow-lg">
+            <div className="flex items-start justify-between">
+              <Brand />
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Fermer le menu"
-                className="rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
+                className="mt-4 mr-3 rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -174,8 +178,8 @@ export function AppShell({
       )}
 
       {/* Contenu principal */}
-      <div className="md:pl-64">
-        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+      <div className="md:pl-60">
+        <main className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   )

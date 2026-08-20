@@ -118,7 +118,7 @@ export function IssueForm({ propertyId, leaseId }: { propertyId: string; leaseId
         </p>
       )}
       {success && (
-        <p className="text-sm text-green-600" role="status">
+        <p className="text-sm text-success" role="status">
           Signalement envoyé à la régie.
         </p>
       )}

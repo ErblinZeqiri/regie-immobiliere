@@ -1,74 +1,42 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { Building2, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { createClient } from '@/lib/supabase/client'
 
 const NAV_LINKS = [{ href: '/annonces', label: 'Annonces' }]
 
-/** Nom de la régie — remplace par le tien. */
-const BRAND = 'Régie Ferizaj'
+/** Nom de la régie. */
+const BRAND = 'Pron Gérance'
 
-const ROLE_HOME: Record<string, string> = {
-  admin: '/admin',
-  owner: '/proprietaire',
-  tenant: '/locataire',
-}
-
-interface CurrentUser {
+export interface PublicUser {
   name: string
   home: string
 }
 
-export function PublicHeader() {
+export function PublicHeader({ me }: { me: PublicUser | null }) {
   const [open, setOpen] = useState(false)
-  const [me, setMe] = useState<CurrentUser | null>(null)
-
-  // État de connexion détecté côté client → les pages publiques restent cachées.
-  useEffect(() => {
-    const supabase = createClient()
-    let active = true
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!active || !user) return
-      const { data } = await supabase
-        .from('profiles')
-        .select('full_name, role')
-        .eq('id', user.id)
-        .single()
-      if (!active) return
-      const role = data?.role ?? 'tenant'
-      setMe({
-        name: data?.full_name ?? user.email ?? 'Mon espace',
-        home: ROLE_HOME[role] ?? '/',
-      })
-    })
-    return () => {
-      active = false
-    }
-  }, [])
 
   const initial = (me?.name ?? '?').trim().charAt(0).toUpperCase() || '?'
 
-  const Avatar = ({ withName = false }: { withName?: boolean }) => (
-    <Link href={me!.home} onClick={() => setOpen(false)} className="flex items-center gap-2">
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-        {initial}
-      </span>
-      {withName && <span className="text-sm font-medium">{me!.name}</span>}
-    </Link>
-  )
+  const Avatar = ({ withName = false }: { withName?: boolean }) =>
+    me ? (
+      <Link href={me.home} onClick={() => setOpen(false)} className="flex items-center gap-2">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+          {initial}
+        </span>
+        {withName && <span className="text-sm font-medium">{me.name}</span>}
+      </Link>
+    ) : null
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo / marque */}
-        <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Building2 className="h-5 w-5" aria-hidden />
-          </span>
-          <span className="text-lg">{BRAND}</span>
+        {/* Marque */}
+        <Link href="/" className="flex items-center gap-2.5">
+          <span className="h-2.5 w-2.5 rounded-[3px] bg-primary" aria-hidden />
+          <span className="font-display text-lg font-semibold tracking-tight">{BRAND}</span>
         </Link>
 
         {/* Navigation desktop */}

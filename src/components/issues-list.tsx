@@ -21,9 +21,9 @@ function StatusBadge({ status }: { status: string }) {
     case 'open':
       return <Badge variant="outline" className="border-amber-500 text-amber-600">Ouvert</Badge>
     case 'in_progress':
-      return <Badge className="border-transparent bg-blue-600 text-white">En cours</Badge>
+      return <Badge className="border-blue-500/25 bg-blue-500/10 text-blue-600">En cours</Badge>
     case 'resolved':
-      return <Badge className="border-transparent bg-green-600 text-white">Résolu</Badge>
+      return <Badge className="border-success/25 bg-success/10 text-success">Résolu</Badge>
     case 'closed':
       return <Badge variant="secondary">Clôturé</Badge>
     default:

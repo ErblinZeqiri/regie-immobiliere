@@ -23,7 +23,7 @@ interface LeaseRow {
 }
 
 const STATUS: Record<string, { label: string; className?: string; variant?: 'outline' | 'secondary' }> = {
-  active: { label: 'Actif', className: 'border-transparent bg-green-600 text-white' },
+  active: { label: 'Actif', className: 'border-success/25 bg-success/10 text-success' },
   ended: { label: 'Terminé', variant: 'secondary' },
   terminated: { label: 'Résilié', variant: 'secondary' },
 }

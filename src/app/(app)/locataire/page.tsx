@@ -105,9 +105,9 @@ async function getTenantData() {
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'validated')
-    return <Badge className="border-transparent bg-green-600 text-white">Validé</Badge>
+    return <Badge className="border-success/25 bg-success/10 text-success">Validé</Badge>
   if (status === 'pending')
-    return <Badge className="border-transparent bg-amber-500 text-white">En attente</Badge>
+    return <Badge className="border-amber-500/25 bg-amber-500/10 text-amber-600">En attente</Badge>
   return <Badge variant="destructive">Rejeté</Badge>
 }
 
@@ -142,7 +142,7 @@ export default async function LocataireDashboardPage() {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Home className="h-4 w-4 text-muted-foreground" aria-hidden />
-              <CardDescription>Mon logement</CardDescription>
+              <CardDescription className="stat-label">Mon logement</CardDescription>
             </div>
             <CardTitle className="flex items-center gap-2 text-lg">
               {prop?.title ?? 'Logement'}
@@ -175,10 +175,10 @@ export default async function LocataireDashboardPage() {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Wallet className="h-4 w-4 text-muted-foreground" aria-hidden />
-              <CardDescription>Mon solde</CardDescription>
+              <CardDescription className="stat-label">Mon solde</CardDescription>
             </div>
             <CardTitle
-              className={`amount text-3xl font-bold ${totalDue > 0.005 ? 'text-destructive' : 'text-green-600'}`}
+              className={`amount text-3xl font-bold ${totalDue > 0.005 ? 'text-destructive' : 'text-success'}`}
             >
               {eur(totalDue)}
             </CardTitle>
@@ -196,7 +196,7 @@ export default async function LocataireDashboardPage() {
                 )}
               </p>
             ) : (
-              <p className="text-green-600">Vous êtes à jour. Merci !</p>
+              <p className="text-success">Vous êtes à jour. Merci !</p>
             )}
           </CardContent>
         </Card>
@@ -206,7 +206,7 @@ export default async function LocataireDashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Déclarer un paiement</CardTitle>
-          <CardDescription>
+          <CardDescription className="stat-label">
             Renseignez votre virement : la régie le validera et émettra votre quittance.
           </CardDescription>
         </CardHeader>

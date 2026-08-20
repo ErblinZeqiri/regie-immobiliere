@@ -87,7 +87,7 @@ export async function generateRentReceipt(
       .eq('payment_id', paymentId)
     if (allocErr) throw allocErr
 
-    const covered = (allocations ?? []) as Array<{
+    const covered = (allocations ?? []) as unknown as Array<{
       amount: string
       rent_charges: { label: string | null; period: string | null } | null
     }>

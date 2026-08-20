@@ -163,7 +163,7 @@ export function UserAccountForm({
         </p>
       )}
       {success && (
-        <p className="text-sm text-green-600" role="status">
+        <p className="text-sm text-success" role="status">
           Profil enregistré.
         </p>
       )}

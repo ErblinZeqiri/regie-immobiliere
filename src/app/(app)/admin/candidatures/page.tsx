@@ -19,9 +19,9 @@ interface AppRow {
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'new')
-    return <Badge className="border-transparent bg-amber-500 text-white">Nouveau</Badge>
+    return <Badge className="border-amber-500/25 bg-amber-500/10 text-amber-600">Nouveau</Badge>
   if (status === 'contacted')
-    return <Badge className="border-transparent bg-green-600 text-white">Contacté</Badge>
+    return <Badge className="border-success/25 bg-success/10 text-success">Contacté</Badge>
   return <Badge variant="secondary">Archivé</Badge>
 }
 

@@ -27,6 +27,9 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-terracotta: var(--terracotta);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -49,41 +52,48 @@
 }
 
 :root {
-  /* Fond légèrement désaturé (cool off-white) : les cartes blanches ressortent. */
-  --background: oklch(0.994 0.003 220);
-  --foreground: oklch(0.17 0.01 240);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.17 0.01 240);
+  /* Swiss Refined : off-white chaud, blanc cassé, vert profond en signature. */
+  --background: oklch(0.966 0.006 85); /* #F7F5F2 */
+  --foreground: oklch(0.215 0 0); /* #1A1A1A */
+  --card: oklch(1 0 0); /* #FFFFFF */
+  --card-foreground: oklch(0.215 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.17 0.01 240);
-  /* Primaire = teal profond #0F4C5C */
-  --primary: oklch(0.39 0.06 222);
-  --primary-foreground: oklch(0.985 0.005 220);
-  --secondary: oklch(0.968 0.006 220);
-  --secondary-foreground: oklch(0.3 0.04 222);
-  --muted: oklch(0.967 0.004 220);
-  --muted-foreground: oklch(0.53 0.02 230);
-  --accent: oklch(0.955 0.018 218);
-  --accent-foreground: oklch(0.39 0.06 222);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.912 0.006 225);
-  --input: oklch(0.912 0.006 225);
-  --ring: oklch(0.55 0.08 220);
-  --chart-1: oklch(0.39 0.06 222);
-  --chart-2: oklch(0.55 0.09 200);
-  --chart-3: oklch(0.65 0.12 180);
-  --chart-4: oklch(0.7 0.13 150);
-  --chart-5: oklch(0.62 0.15 45);
-  --radius: 0.7rem;
-  /* Sidebar : très légèrement teintée */
-  --sidebar: oklch(0.982 0.008 220);
-  --sidebar-foreground: oklch(0.17 0.01 240);
-  --sidebar-primary: oklch(0.39 0.06 222);
-  --sidebar-primary-foreground: oklch(0.985 0.005 220);
-  --sidebar-accent: oklch(0.95 0.018 218);
-  --sidebar-accent-foreground: oklch(0.39 0.06 222);
-  --sidebar-border: oklch(0.9 0.01 222);
-  --sidebar-ring: oklch(0.55 0.08 220);
+  --popover-foreground: oklch(0.215 0 0);
+  /* Accent principal : vert profond saturé (#1F4D3A), utilisé avec parcimonie. */
+  --primary: oklch(0.375 0.07 158);
+  --primary-foreground: oklch(0.985 0.005 90);
+  --secondary: oklch(0.955 0.006 85);
+  --secondary-foreground: oklch(0.3 0.02 150);
+  --muted: oklch(0.955 0.006 85);
+  --muted-foreground: oklch(0.47 0.012 80); /* gris chaud #5C574F */
+  --accent: oklch(0.945 0.022 158); /* voile vert très léger */
+  --accent-foreground: oklch(0.375 0.07 158);
+  /* Erreur / retard : rouge profond. */
+  --destructive: oklch(0.505 0.19 25);
+  /* Succès : vert saturé (montants encaissés/validés). */
+  --success: oklch(0.52 0.13 152);
+  --success-foreground: oklch(0.99 0.02 155);
+  /* Accent secondaire : terracotta discret (#A65D3F), très rare. */
+  --terracotta: oklch(0.55 0.09 44);
+  /* Bordures 1px solides, chaudes (#E8E5E0). */
+  --border: oklch(0.918 0.006 85);
+  --input: oklch(0.9 0.007 85);
+  --ring: oklch(0.375 0.07 158);
+  --chart-1: oklch(0.375 0.07 158);
+  --chart-2: oklch(0.52 0.13 152);
+  --chart-3: oklch(0.55 0.09 44);
+  --chart-4: oklch(0.5 0.05 120);
+  --chart-5: oklch(0.505 0.19 25);
+  --radius: 0.5rem;
+  /* Sidebar CLAIRE (éditoriale) sur l'off-white ; actif = vert. */
+  --sidebar: oklch(0.955 0.008 85);
+  --sidebar-foreground: oklch(0.47 0.012 80);
+  --sidebar-primary: oklch(0.375 0.07 158);
+  --sidebar-primary-foreground: oklch(0.985 0.005 90);
+  --sidebar-accent: oklch(0.94 0.022 158);
+  --sidebar-accent-foreground: oklch(0.375 0.07 158);
+  --sidebar-border: oklch(0.9 0.006 85);
+  --sidebar-ring: oklch(0.375 0.07 158);
 }
 
 .dark {
@@ -132,17 +142,92 @@
   }
 }
 
+@layer base {
+  /* Rendu net + hiérarchie typographique appuyée. */
+  body {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  /* Grands titres : serif éditoriale, tracking serré. */
+  h1 {
+    font-family: var(--font-display), Georgia, "Times New Roman", serif;
+    letter-spacing: -0.02em;
+  }
+}
+
 @layer components {
-  /* Placeholder photo élégant (annonces / biens sans image) */
+  .font-display {
+    font-family: var(--font-display), Georgia, serif;
+    letter-spacing: -0.02em;
+  }
+  /* Placeholder photo sobre (annonces / biens sans image). */
   .photo-placeholder {
-    @apply flex items-center justify-center bg-gradient-to-br from-muted via-secondary to-accent text-primary/35;
+    @apply flex items-center justify-center bg-secondary text-muted-foreground/45;
   }
-  /* Carte KPI : légère teinte primaire pour la distinguer des listes */
+  /* Carte KPI : surface propre ; la hiérarchie vient de la typo, pas d'un dégradé. */
   .kpi-card {
-    @apply bg-gradient-to-br from-card to-primary/[0.06];
+    @apply bg-card;
   }
-  /* Montants : chiffres tabulaires alignés, semi-gras, légèrement agrandis */
+  /* Libellé de statistique (KPI) : petit, en capitales, espacé. */
+  .stat-label {
+    @apply text-[0.7rem] font-medium uppercase tracking-wider text-muted-foreground;
+  }
+  /* Montants : chiffres tabulaires alignés, marqués. */
   .amount {
     @apply font-semibold tabular-nums tracking-tight;
   }
+}
+/* -----------------------------------------------------------------------------
+   Carte des annonces (Leaflet) — pins « pastille prix » accordés à la DA.
+----------------------------------------------------------------------------- */
+.leaflet-container {
+  font-family: inherit;
+  background: var(--muted);
+}
+.leaflet-control-attribution {
+  font-size: 10px;
+  background: color-mix(in oklch, var(--card), transparent 15%) !important;
+}
+.map-pin-wrap {
+  background: transparent !important;
+  border: 0 !important;
+}
+.map-pin {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  transform: translate(-50%, -120%);
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--foreground);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.14);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, transform 0.15s;
+}
+.map-pin::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  transform: translateX(-50%) rotate(45deg);
+}
+.map-pin--active,
+.map-pin:hover {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+  z-index: 500;
+  transform: translate(-50%, -128%) scale(1.06);
 }
