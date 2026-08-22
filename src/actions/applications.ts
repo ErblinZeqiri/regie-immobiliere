@@ -6,6 +6,7 @@ import { zuuid } from '@/lib/zutil'
 import { requireAdmin } from '@/lib/auth/guards'
 import { createUserClient } from '@/lib/supabase/server'
 import { toActionError } from '@/lib/server-helpers'
+import { notifyNewApplication } from '@/lib/email/notify'
 import type { ActionResult } from '@/lib/types'
 
 const SubmitApplicationInput = z.object({
@@ -41,6 +42,15 @@ export async function submitApplication(
       message: data.message ?? null,
     })
     if (error) throw error
+
+    // Notifie l'admin — sans bloquer la candidature.
+    await notifyNewApplication({
+      propertyId: data.propertyId ?? null,
+      fullName: data.fullName,
+      email: data.email,
+      phone: data.phone ?? null,
+      message: data.message ?? null,
+    })
 
     return { ok: true, data: null }
   } catch (e) {

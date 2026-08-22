@@ -7,6 +7,7 @@ import { requireAdmin, requireUser } from '@/lib/auth/guards'
 import { createUserClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { round2, toActionError } from '@/lib/server-helpers'
+import { notifyPaymentValidated } from '@/lib/email/notify'
 import type { ActionResult, Payment } from '@/lib/types'
 
 // ===========================================================================
@@ -132,6 +133,9 @@ export async function validatePayment(
     // La fonction renvoie la ligne payments mise à jour (objet ou tableau selon
     // la version PostgREST) — on normalise.
     const payment = (Array.isArray(data) ? data[0] : data) as Payment
+
+    // Notifications (locataire + propriétaire) — ne bloque jamais la validation.
+    await notifyPaymentValidated(paymentId)
 
     revalidatePath('/admin/loyers') // adapte le chemin
     return { ok: true, data: payment }

@@ -7,6 +7,7 @@ import { requireAdmin } from '@/lib/auth/guards'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { round2, toActionError } from '@/lib/server-helpers'
 import { normalizeForMatch } from '@/lib/payment-ref'
+import { notifyPaymentValidated, notifyReconciliationExceptions } from '@/lib/email/notify'
 import type { ActionResult } from '@/lib/types'
 
 // ---------------------------------------------------------------------------
@@ -96,6 +97,7 @@ export async function importBankStatement(
 
     let validated = 0
     let exceptions = 0
+    const validatedPaymentIds: string[] = []
 
     // 3. Rapproche chaque ligne.
     for (const row of rows) {
@@ -167,14 +169,20 @@ export async function importBankStatement(
         note,
       })
 
-      if (status === 'validated') validated += 1
-      else exceptions += 1
+      if (status === 'validated') {
+        validated += 1
+        if (paymentId) validatedPaymentIds.push(paymentId)
+      } else exceptions += 1
     }
 
     await admin
       .from('bank_imports')
       .update({ validated_count: validated, exception_count: exceptions })
       .eq('id', importId)
+
+    // Notifications — sans jamais bloquer l'import.
+    for (const id of validatedPaymentIds) await notifyPaymentValidated(id)
+    await notifyReconciliationExceptions(importId, exceptions)
 
     revalidatePath('/admin/rapprochement')
     revalidatePath('/admin/loyers')
@@ -257,6 +265,8 @@ export async function resolveBankTransaction(
       .from('bank_transactions')
       .update({ status: 'resolved', matched_charge_id: chargeId, payment_id: pay.id, note: 'Rapprochée manuellement.' })
       .eq('id', txId)
+
+    await notifyPaymentValidated(pay.id)
 
     revalidatePath('/admin/rapprochement')
     revalidatePath('/admin/loyers')

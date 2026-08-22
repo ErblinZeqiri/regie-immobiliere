@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { requireAdmin, requireUser } from '@/lib/auth/guards'
 import { createUserClient } from '@/lib/supabase/server'
 import { toActionError } from '@/lib/server-helpers'
+import { notifyNewIssue } from '@/lib/email/notify'
 import type { ActionResult, Issue, IssuePhoto } from '@/lib/types'
 
 // ===========================================================================
@@ -64,6 +65,9 @@ export async function createIssue(
       .select()
       .single()
     if (error) throw error
+
+    // Notifie admin + propriétaire(s) du bien — sans bloquer.
+    await notifyNewIssue(issue.id)
 
     revalidatePath('/signalements') // adapte le chemin
     return { ok: true, data: issue as Issue }
