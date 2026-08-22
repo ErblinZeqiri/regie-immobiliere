@@ -14,6 +14,7 @@ import {
   Home,
   Receipt,
   Inbox,
+  ArrowLeftRight,
   Store,
   Menu,
   X,
@@ -36,6 +37,7 @@ const ICONS = {
   home: Home,
   receipt: Receipt,
   inbox: Inbox,
+  reconcile: ArrowLeftRight,
 } as const
 
 export type NavItem = {

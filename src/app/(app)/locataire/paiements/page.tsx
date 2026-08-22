@@ -1,6 +1,7 @@
-import { Wallet, Download } from 'lucide-react'
+import { Wallet, Download, Info, FileText } from 'lucide-react'
 import { createUserClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
+import { CopyButton } from '@/components/copy-button'
 import {
   Card,
   CardContent,
@@ -14,9 +15,6 @@ import { DeclarePaymentForm } from '@/components/declare-payment-form'
 
 export const dynamic = 'force-dynamic'
 
-const DOCUMENTS_BUCKET = 'documents'
-const SIGNED_TTL = 60 * 60
-
 const eur = (v: number | string) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(Number(v))
 
@@ -25,6 +23,7 @@ interface ChargeRow {
   label: string | null
   due_date: string
   amount: string
+  payment_ref: string | null
 }
 interface PaymentRow {
   id: string
@@ -56,22 +55,30 @@ async function getData() {
 
   const { data: chargesRaw } = await supabase
     .from('rent_charges')
-    .select('id, label, due_date, amount')
+    .select('id, label, due_date, amount, payment_ref')
     .eq('lease_id', lease.id)
     .eq('status', 'active')
     .is('deleted_at', null)
     .order('due_date', { ascending: true })
   const charges = (chargesRaw ?? []) as ChargeRow[]
 
-  // Allocations -> montant réglé par échéance
+  // Allocations -> montant réglé par échéance + paiement validé couvrant (quittance)
   const allocByCharge = new Map<string, number>()
+  const chargeToPayment = new Map<string, string>()
   if (charges.length > 0) {
-    const { data: allocs } = await supabase
+    const { data: allocsRaw } = await supabase
       .from('payment_allocations')
-      .select('rent_charge_id, amount')
+      .select('rent_charge_id, amount, payment:payments(id, status)')
       .in('rent_charge_id', charges.map((c) => c.id))
-    for (const a of allocs ?? [])
+    const allocs = (allocsRaw ?? []) as unknown as {
+      rent_charge_id: string
+      amount: string
+      payment: { id: string; status: string } | null
+    }[]
+    for (const a of allocs) {
       allocByCharge.set(a.rent_charge_id, (allocByCharge.get(a.rent_charge_id) ?? 0) + Number(a.amount))
+      if (a.payment?.status === 'validated') chargeToPayment.set(a.rent_charge_id, a.payment.id)
+    }
   }
 
   const echeances = charges.map((c) => {
@@ -93,27 +100,7 @@ async function getData() {
     .order('payment_date', { ascending: false })
   const payments = (paymentsRaw ?? []) as PaymentRow[]
 
-  // Quittances (documents type=receipt) -> URL signée par paiement
-  const receiptByPayment = new Map<string, string>()
-  const { data: receipts } = await supabase
-    .from('documents')
-    .select('file_url')
-    .eq('lease_id', lease.id)
-    .eq('type', 'receipt')
-    .is('deleted_at', null)
-  const receiptDocs = (receipts ?? []) as { file_url: string }[]
-  if (receiptDocs.length > 0) {
-    const { data: signed } = await supabase.storage
-      .from(DOCUMENTS_BUCKET)
-      .createSignedUrls(receiptDocs.map((r) => r.file_url), SIGNED_TTL)
-    for (const s of signed ?? []) {
-      // chemin : lease/{leaseId}/receipts/{paymentId}.pdf
-      const m = s.path?.match(/receipts\/([0-9a-f-]+)\.pdf$/i)
-      if (m && s.signedUrl) receiptByPayment.set(m[1], s.signedUrl)
-    }
-  }
-
-  return { lease, echeances, totalDue, overdueDue, monthly, payments, receiptByPayment }
+  return { lease, echeances, totalDue, overdueDue, monthly, payments, chargeToPayment }
 }
 
 function EcheanceBadge({ remaining, overdue, paid }: { remaining: number; overdue: boolean; paid: number }) {
@@ -147,7 +134,7 @@ export default async function PaiementsPage() {
     )
   }
 
-  const { lease, echeances, totalDue, overdueDue, monthly, payments, receiptByPayment } = data
+  const { lease, echeances, totalDue, overdueDue, monthly, payments, chargeToPayment } = data
 
   return (
     <div className="max-w-4xl space-y-8">
@@ -206,6 +193,17 @@ export default async function PaiementsPage() {
       {/* Échéances */}
       <section>
         <h2 className="mb-3 font-display text-lg font-semibold">Échéances</h2>
+
+        <div className="mb-3 flex items-start gap-2.5 rounded-[10px] border border-border bg-accent/40 px-4 py-3 text-sm">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+          <p className="text-muted-foreground">
+            Pour régler une échéance, virez le{' '}
+            <span className="font-medium text-foreground">montant exact</span> en indiquant sa{' '}
+            <span className="font-medium text-foreground">référence</span> dans le libellé —
+            votre paiement sera rapproché automatiquement.
+          </p>
+        </div>
+
         {echeances.length === 0 ? (
           <div className="rounded-[10px] border border-dashed py-10 text-center text-sm text-muted-foreground">
             Aucune échéance pour le moment.
@@ -213,30 +211,62 @@ export default async function PaiementsPage() {
         ) : (
           <Card>
             <CardContent className="divide-y p-0">
-              {echeances.map((e) => (
-                <div key={e.id} className="flex items-center justify-between gap-3 p-4">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{e.label ?? 'Échéance'}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Échéance au {e.due_date}
-                      {e.paid > 0.005 && e.remaining > 0.005
-                        ? ` · ${eur(e.paid)} déjà réglé`
-                        : ''}
-                    </p>
+              {echeances.map((e) => {
+                const open = e.remaining > 0.005
+                return (
+                  <div key={e.id} className="p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{e.label ?? 'Échéance'}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Échéance au {e.due_date}
+                          {e.paid > 0.005 && open ? ` · ${eur(e.paid)} déjà réglé` : ''}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-3">
+                        <span className={cn('amount text-sm', open ? 'text-foreground' : 'text-muted-foreground')}>
+                          {open ? eur(e.remaining) : eur(e.amount)}
+                        </span>
+                        <EcheanceBadge remaining={e.remaining} overdue={e.overdue} paid={e.paid} />
+                      </div>
+                    </div>
+
+                    {open && e.payment_ref && (
+                      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md bg-muted/60 px-3 py-2">
+                        <span className="stat-label">Référence</span>
+                        <code className="rounded bg-background px-2 py-0.5 font-mono text-sm font-semibold tracking-tight text-primary">
+                          {e.payment_ref}
+                        </code>
+                        <CopyButton value={e.payment_ref} />
+                        <a
+                          href={`/locataire/paiements/avis/${e.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                          Avis de paiement
+                        </a>
+                      </div>
+                    )}
+
+                    {!open && chargeToPayment.get(e.id) && (
+                      <div className="mt-3 flex items-center gap-x-4 rounded-md bg-muted/50 px-3 py-2">
+                        <span className="stat-label text-success">Réglée</span>
+                        <a
+                          href={`/locataire/paiements/quittance/${chargeToPayment.get(e.id)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          Quittance
+                        </a>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <span
-                      className={cn(
-                        'amount text-sm',
-                        e.remaining > 0.005 ? 'text-foreground' : 'text-muted-foreground',
-                      )}
-                    >
-                      {e.remaining > 0.005 ? eur(e.remaining) : eur(e.amount)}
-                    </span>
-                    <EcheanceBadge remaining={e.remaining} overdue={e.overdue} paid={e.paid} />
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </CardContent>
           </Card>
         )}
@@ -252,34 +282,37 @@ export default async function PaiementsPage() {
         ) : (
           <Card>
             <CardContent className="divide-y p-0">
-              {payments.map((p) => {
-                const receipt = p.status === 'validated' ? receiptByPayment.get(p.id) : undefined
-                return (
-                  <div key={p.id} className="flex items-center justify-between gap-3 p-4">
-                    <div className="min-w-0 space-y-0.5">
-                      <p className="amount text-base">{eur(p.amount)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {p.payment_date}
-                        {p.method ? ` · ${p.method}` : ''}
-                        {p.reference ? ` · réf. ${p.reference}` : ''}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-3">
-                      {receipt && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          render={<a href={receipt} target="_blank" rel="noopener noreferrer" />}
-                        >
-                          <Download className="h-4 w-4" />
-                          Quittance
-                        </Button>
-                      )}
-                      <PaymentBadge status={p.status} />
-                    </div>
+              {payments.map((p) => (
+                <div key={p.id} className="flex items-center justify-between gap-3 p-4">
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="amount text-base">{eur(p.amount)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {p.payment_date}
+                      {p.method ? ` · ${p.method}` : ''}
+                      {p.reference ? ` · réf. ${p.reference}` : ''}
+                    </p>
                   </div>
-                )
-              })}
+                  <div className="flex shrink-0 items-center gap-3">
+                    {p.status === 'validated' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        render={
+                          <a
+                            href={`/locataire/paiements/quittance/${p.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          />
+                        }
+                      >
+                        <Download className="h-4 w-4" />
+                        Quittance
+                      </Button>
+                    )}
+                    <PaymentBadge status={p.status} />
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         )}

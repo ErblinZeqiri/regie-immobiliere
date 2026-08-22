@@ -10,6 +10,7 @@ const NAV: NavItem[] = [
   { href: '/admin/locataires', label: 'Locataires', icon: 'users' },
   { href: '/admin/baux', label: 'Baux', icon: 'file' },
   { href: '/admin/loyers', label: 'Loyers', icon: 'euro' },
+  { href: '/admin/rapprochement', label: 'Rapprochement', icon: 'reconcile' },
   { href: '/admin/candidatures', label: 'Candidatures', icon: 'inbox' },
   { href: '/admin/signalements', label: 'Signalements', icon: 'wrench' },
   { href: '/admin/messages', label: 'Messages', icon: 'message' },

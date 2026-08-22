@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/auth/guards'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { monthLabelFr, round2, toActionError } from '@/lib/server-helpers'
+import { buildPaymentRef } from '@/lib/payment-ref'
 import type { ActionResult, RentCharge } from '@/lib/types'
 
 // ---------------------------------------------------------------------------
@@ -57,14 +58,20 @@ export async function generateRentCharges(
     // 1. Baux cibles (actifs, non supprimés)
     let query = admin
       .from('leases')
-      .select('id, rent_amount, charges_amount')
+      .select('id, rent_amount, charges_amount, property:properties(reference)')
       .eq('status', 'active')
       .is('deleted_at', null)
     if (leaseId) query = query.eq('id', leaseId)
 
-    const { data: leases, error: leaseErr } = await query
+    const { data: leasesRaw, error: leaseErr } = await query
     if (leaseErr) throw leaseErr
-    if (!leases || leases.length === 0) {
+    const leases = (leasesRaw ?? []) as unknown as Array<{
+      id: string
+      rent_amount: string
+      charges_amount: string
+      property: { reference: string | null } | null
+    }>
+    if (leases.length === 0) {
       return { ok: true, data: { created: 0, skipped: 0, charges: [] } }
     }
 
@@ -84,6 +91,7 @@ export async function generateRentCharges(
     // 3. Construit les lignes manquantes
     const rows: Array<Record<string, unknown>> = []
     for (const l of leases) {
+      const propRef = l.property?.reference ?? null
       if (!existingKey.has(`${l.id}:rent`)) {
         rows.push({
           lease_id: l.id,
@@ -92,6 +100,7 @@ export async function generateRentCharges(
           label: `Loyer ${label}`,
           amount: round2(l.rent_amount),
           type: 'rent',
+          payment_ref: buildPaymentRef(propRef, period, 'rent'),
         })
       }
       if (
@@ -106,6 +115,7 @@ export async function generateRentCharges(
           label: `Charges ${label}`,
           amount: round2(l.charges_amount),
           type: 'charges',
+          payment_ref: buildPaymentRef(propRef, period, 'charges'),
         })
       }
     }
