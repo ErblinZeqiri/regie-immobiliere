@@ -14,6 +14,7 @@ const NAV: NavItem[] = [
   { href: '/admin/candidatures', label: 'Candidatures', icon: 'inbox' },
   { href: '/admin/signalements', label: 'Signalements', icon: 'wrench' },
   { href: '/admin/messages', label: 'Messages', icon: 'message' },
+  { href: '/admin/parametres', label: 'Paramètres', icon: 'settings' },
 ]
 
 /**

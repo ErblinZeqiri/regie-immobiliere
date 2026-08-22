@@ -34,6 +34,14 @@ export default async function PublicLayout({ children }: { children: ReactNode }
     }
   }
 
+  // Identité de la régie (vue publique, colonnes non sensibles).
+  const { data: agency } = await supabase
+    .from('agency_public')
+    .select('legal_name, city, country, email')
+    .maybeSingle()
+  const brand = agency?.legal_name ?? 'Pron Gérance'
+  const place = [agency?.city, agency?.country].filter(Boolean).join(', ') || 'Kosovo'
+
   return (
     <div className="flex min-h-screen flex-col">
       <PublicHeader me={me} />
@@ -42,7 +50,10 @@ export default async function PublicLayout({ children }: { children: ReactNode }
 
       <footer className="border-t">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
-          <p>© {new Date().getFullYear()} Pron Gérance — Kosovo</p>
+          <p>
+            © {new Date().getFullYear()} {brand} — {place}
+            {agency?.email ? ` · ${agency.email}` : ''}
+          </p>
           <nav className="flex items-center gap-4">
             <Link href="/annonces" className="hover:text-foreground">
               Annonces

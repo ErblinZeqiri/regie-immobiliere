@@ -1,5 +1,6 @@
 import { createUserClient } from '@/lib/supabase/server'
 import { monthLabelFr } from '@/lib/server-helpers'
+import { getAgencySettings } from '@/lib/agency'
 import { buildAvisPdf } from '@/lib/pdf/tenant-docs'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -46,6 +47,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     amount: Number(charge.amount),
     paymentRef: charge.payment_ref ?? '—',
     generatedDate: new Date().toISOString().slice(0, 10),
+    agency: await getAgencySettings(),
   })
 
   const filename = `avis-${charge.payment_ref ?? charge.id.slice(0, 8)}.pdf`

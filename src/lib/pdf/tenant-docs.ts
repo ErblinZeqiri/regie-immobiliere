@@ -1,5 +1,6 @@
 import 'server-only'
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type RGB } from 'pdf-lib'
+import type { AgencySettings } from '@/lib/agency'
 
 /* ------------------------- Palette (monochrome) --------------------------- */
 const INK = rgb(0.11, 0.11, 0.12)
@@ -59,10 +60,11 @@ export interface PropertyInfo {
 }
 
 /* ------------------------------ En-tête / pied ---------------------------- */
-function header(page: PDFPage, f: Fonts, docType: string, docNo: string): number {
+function header(page: PDFPage, f: Fonts, a: AgencySettings, docType: string, docNo: string): number {
   const top = PAGE.h - 64
-  text(page, 'Pron Gérance', M, top, 15, f.serifBold, INK)
-  text(page, 'Gérance immobilière — Ferizaj, Kosovo', M, top - 15, 8, f.sans, GREY)
+  text(page, a.legalName, M, top, 15, f.serifBold, INK)
+  const place = [a.city, a.country].filter(Boolean).join(', ')
+  text(page, ['Gérance immobilière', place].filter(Boolean).join(' — '), M, top - 15, 8, f.sans, GREY)
 
   rightText(page, docType.toUpperCase().split('').join(' '), RIGHT, top, 10.5, f.sansBold, INK)
   rightText(page, docNo, RIGHT, top - 15, 8.5, f.sans, GREY)
@@ -72,12 +74,16 @@ function header(page: PDFPage, f: Fonts, docType: string, docNo: string): number
   return ruleY - 48 // espace généreux après l'en-tête
 }
 
-function footer(page: PDFPage, f: Fonts, generatedDate: string, legal: string) {
+function footer(page: PDFPage, f: Fonts, a: AgencySettings, generatedDate: string, docLegal: string) {
   const y = 78 // pied bien en bas de page
   rule(page, M, y, RIGHT, HAIR2, 0.75)
-  text(page, 'Pron Gérance · Ferizaj, Kosovo · IBAN communiqué sur demande', M, y - 15, 7.5, f.sans, GREY)
+  const identity = [a.legalName, [a.address, a.city, a.country].filter(Boolean).join(', '), a.email, a.phone]
+    .filter(Boolean)
+    .join(' · ')
+  text(page, identity, M, y - 15, 7.5, f.sans, GREY)
   rightText(page, `Émis le ${fmtDate(generatedDate)}`, RIGHT, y - 15, 7.5, f.sans, GREY)
-  text(page, legal, M, y - 28, 7, f.sans, GREY)
+  const legalLine = [docLegal, a.legalMentions].filter(Boolean).join('   —   ')
+  text(page, legalLine, M, y - 28, 7, f.sans, GREY)
 }
 
 function infoBlock(
@@ -140,6 +146,7 @@ export interface AvisData {
   amount: number
   paymentRef: string
   generatedDate: string
+  agency: AgencySettings
 }
 
 export async function buildAvisPdf(d: AvisData): Promise<Uint8Array> {
@@ -148,7 +155,7 @@ export async function buildAvisPdf(d: AvisData): Promise<Uint8Array> {
   const f = await fonts(pdf)
   const perX = M + 300
 
-  let y = header(page, f, 'Avis de paiement', `Réf. ${d.paymentRef}`)
+  let y = header(page, f, d.agency, 'Avis de paiement', `Réf. ${d.paymentRef}`)
 
   text(page, `Avis de paiement — ${d.periodLabel}`, M, y, 16, f.serifBold, INK)
   y -= 40
@@ -175,8 +182,8 @@ export async function buildAvisPdf(d: AvisData): Promise<Uint8Array> {
   const modal: [string, string][] = [
     ['Montant', eur(d.amount)],
     ['À régler avant le', fmtDate(d.dueDate)],
-    ['Bénéficiaire', 'Pron Gérance'],
-    ['IBAN', 'communiqué par la régie'],
+    ['Bénéficiaire', d.agency.accountHolder || d.agency.legalName],
+    ['IBAN', d.agency.iban || 'communiqué par la régie'],
   ]
   for (const [k, v] of modal) {
     text(page, k, M, y, 9.5, f.sans, GREY)
@@ -188,7 +195,7 @@ export async function buildAvisPdf(d: AvisData): Promise<Uint8Array> {
   y -= 13
   text(page, 'le rapprochement automatique de votre paiement.', M, y, 9, f.sans, GREY)
 
-  footer(page, f, d.generatedDate, "Ce document est un avis de paiement et ne constitue pas une quittance.")
+  footer(page, f, d.agency, d.generatedDate, "Ce document est un avis de paiement et ne constitue pas une quittance.")
   return pdf.save()
 }
 
@@ -204,6 +211,7 @@ export interface QuittanceData {
   periodLabel: string
   covered: { label: string; amount: number }[]
   generatedDate: string
+  agency: AgencySettings
 }
 
 const METHOD_LABELS: Record<string, string> = {
@@ -219,7 +227,7 @@ export async function buildQuittancePdf(d: QuittanceData): Promise<Uint8Array> {
   const f = await fonts(pdf)
   const perX = M + 300
 
-  let y = header(page, f, 'Quittance', `N° ${d.quittanceNo}`)
+  let y = header(page, f, d.agency, 'Quittance', `N° ${d.quittanceNo}`)
 
   text(page, `Quittance de loyer — ${d.periodLabel}`, M, y, 16, f.serifBold, INK)
   y -= 16
@@ -254,10 +262,10 @@ export async function buildQuittancePdf(d: QuittanceData): Promise<Uint8Array> {
 
   rule(page, M, y, RIGHT, HAIR2, 0.5)
   y -= 20
-  text(page, `Pron Gérance reconnaît avoir reçu de ${d.tenantName} la somme de ${eur(d.amount)}`, M, y, 10, f.sans, INK)
+  text(page, `${d.agency.legalName} reconnaît avoir reçu de ${d.tenantName} la somme de ${eur(d.amount)}`, M, y, 10, f.sans, INK)
   y -= 15
   text(page, `au titre du loyer et des charges de la période ${d.periodLabel}, et lui en donne quittance.`, M, y, 10, f.sans, INK)
 
-  footer(page, f, d.generatedDate, "Quittance délivrée sous réserve d'encaissement. Elle annule les reçus antérieurs pour la même période.")
+  footer(page, f, d.agency, d.generatedDate, "Quittance délivrée sous réserve d'encaissement. Elle annule les reçus antérieurs pour la même période.")
   return pdf.save()
 }
